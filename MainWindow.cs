@@ -108,49 +108,13 @@ namespace KeyboardCleaner
             };
 
             var rootGrid = new Grid();
-            rootGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });                        // row 0: title bar
-            rootGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // row 1: status
-            rootGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });                        // row 2: button
-            rootGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });                        // row 3: hint
+            rootGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // row 0
+            rootGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });                        // row 1
+            rootGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });                        // row 2
+            rootGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });                        // row 3
             rootGrid.Margin = new Thickness(0);
 
-            // ── Row 0: Title bar ────────────────────────────────────
-            var titleBar = new DockPanel
-            {
-                Height = 32,
-                Margin = new Thickness(0),
-            };
-
-            var chromePanel = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-            };
-            DockPanel.SetDock(chromePanel, Dock.Right);
-
-            var minBtn = CreateChromeButton("‒", "最小化到托盘");
-            minBtn.Width = 36; minBtn.Height = 28;
-            minBtn.Click += (s, e) => HideToTray();
-            chromePanel.Children.Add(minBtn);
-
-            var clsBtn = CreateChromeButton("✕", "退出程序");
-            clsBtn.Width = 36; clsBtn.Height = 28;
-            clsBtn.Click += (s, e) => ExitApplication();
-            clsBtn.Foreground = new SolidColorBrush(Color.FromRgb(0xFF, 0x55, 0x55)); // red tint
-            clsBtn.MouseEnter += (s, e) => {
-                clsBtn.Background = new SolidColorBrush(Color.FromRgb(0xE8, 0x11, 0x23));
-                clsBtn.Foreground = Brushes.White;
-            };
-            clsBtn.MouseLeave += (s, e) => {
-                clsBtn.Background = Brushes.Transparent;
-                clsBtn.Foreground = new SolidColorBrush(Color.FromRgb(0xFF, 0x55, 0x55));
-            };
-            chromePanel.Children.Add(clsBtn);
-
-            titleBar.Children.Add(chromePanel);
-            Grid.SetRow(titleBar, 0);
-            rootGrid.Children.Add(titleBar);
-
-            // ── Row 1: Status area ─────────────────────────────────
+            // ── Row 0: Status area ─────────────────────────────────
             var statusPanel = new StackPanel
             {
                 VerticalAlignment = VerticalAlignment.Center,
@@ -199,7 +163,7 @@ namespace KeyboardCleaner
             };
             statusPanel.Children.Add(_statusSubtitle);
 
-            Grid.SetRow(statusPanel, 1);
+            Grid.SetRow(statusPanel, 0);
             rootGrid.Children.Add(statusPanel);
 
             // ── Row 1: Toggle button ───────────────────────────────
@@ -241,7 +205,7 @@ namespace KeyboardCleaner
                 _toggleButton.Background = _isLocked ? BrushBtnLocked : BrushBtnUnlock;
             };
 
-            Grid.SetRow(_toggleButton, 2);
+            Grid.SetRow(_toggleButton, 1);
             rootGrid.Children.Add(_toggleButton);
 
             // ── Row 2: Hint ────────────────────────────────────────
@@ -254,42 +218,58 @@ namespace KeyboardCleaner
                 HorizontalAlignment = HorizontalAlignment.Center,
                 Margin = new Thickness(0, 10, 0, 0),
             };
-            Grid.SetRow(_hintText, 3);
+            Grid.SetRow(_hintText, 2);
             rootGrid.Children.Add(_hintText);
+
+            // ── Row 3: Spacer + close button ──────────────────────
+            var bottomPanel = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Margin = new Thickness(0, 4, 0, 12),
+            };
+
+            var minimizeBtn = CreateChromeButton("─", "最小化到托盘");
+            minimizeBtn.Click += (s, e) => HideToTray();
+            bottomPanel.Children.Add(minimizeBtn);
+
+            var closeText = new TextBlock
+            {
+                Text = "  ·  ",
+                Foreground = BrushBorder,
+                FontSize = 11,
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+            bottomPanel.Children.Add(closeText);
+
+            var exitBtn = CreateChromeButton("✕", "退出程序");
+            exitBtn.Click += (s, e) => ExitApplication();
+            bottomPanel.Children.Add(exitBtn);
+
+            Grid.SetRow(bottomPanel, 3);
+            rootGrid.Children.Add(bottomPanel);
 
             rootBorder.Child = rootGrid;
             Content = rootBorder;
         }
 
-        /// <summary>Chrome button for the title bar (─ / ✕).</summary>
+        /// <summary>Small text-only button for window chrome actions.</summary>
         private Button CreateChromeButton(string text, string tooltip)
         {
             var btn = new Button
             {
                 Content = text,
                 ToolTip = tooltip,
-                FontSize = 11,
+                FontSize = 12,
                 FontFamily = new FontFamily("Segoe UI"),
                 Foreground = BrushTextSec,
                 Background = Brushes.Transparent,
                 BorderThickness = new Thickness(0),
                 Cursor = System.Windows.Input.Cursors.Hand,
-                Padding = new Thickness(0),
-                VerticalContentAlignment = VerticalAlignment.Center,
-                HorizontalContentAlignment = HorizontalAlignment.Center,
+                Padding = new Thickness(6, 2, 6, 2),
             };
-            // Hover: subtle gray background
-            var hoverBg = new SolidColorBrush(Color.FromRgb(0x30, 0x36, 0x3D));
-            btn.MouseEnter += (s, e) =>
-            {
-                btn.Background = hoverBg;
-                btn.Foreground = BrushTextPri;
-            };
-            btn.MouseLeave += (s, e) =>
-            {
-                btn.Background = Brushes.Transparent;
-                btn.Foreground = BrushTextSec;
-            };
+            btn.MouseEnter += (s, e) => btn.Foreground = BrushTextPri;
+            btn.MouseLeave += (s, e) => btn.Foreground = BrushTextSec;
             return btn;
         }
 
