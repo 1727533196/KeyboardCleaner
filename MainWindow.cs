@@ -115,10 +115,12 @@ namespace KeyboardCleaner
             rootGrid.Margin = new Thickness(0);
 
             // ── Row 0: Title bar (buttons top-right) ─────────────────
-            var titleBar = new DockPanel { Height = 30 };
+            var titleBar = new Grid { Height = 30 };
+            titleBar.ColumnDefinitions.Add(new ColumnDefinition());             // left: drag area
+            titleBar.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); // right: buttons
 
             var chromeBtns = new StackPanel { Orientation = Orientation.Horizontal };
-            DockPanel.SetDock(chromeBtns, Dock.Right);
+            Grid.SetColumn(chromeBtns, 1);
 
             var minBtn = CreateChromeButton("‒", "最小化到托盘");
             minBtn.Width = 32; minBtn.Height = 30;
@@ -236,7 +238,7 @@ namespace KeyboardCleaner
                 Foreground = BrushTextSec,
                 FontFamily = new FontFamily("Segoe UI"),
                 HorizontalAlignment = HorizontalAlignment.Center,
-                Margin = new Thickness(0, 10, 0, 0),
+                Margin = new Thickness(0, 10, 0, 14),
             };
             Grid.SetRow(_hintText, 3);
             rootGrid.Children.Add(_hintText);
