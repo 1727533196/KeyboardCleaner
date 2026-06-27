@@ -1,0 +1,22 @@
+# Build output
+*.exe
+*.dll
+*.pdb
+*.ilk
+*.obj
+*.out
+
+# IDE / Editor
+.vs/
+.vscode/
+*.user
+*.suo
+*.sln
+*.csproj.user
+[Bb]in/
+[Oo]bj/
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
