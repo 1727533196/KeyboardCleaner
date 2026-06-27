@@ -247,7 +247,7 @@ namespace KeyboardCleaner
             Content = rootBorder;
         }
 
-        /// <summary>Small text-only button for window chrome (─ / ✕).</summary>
+        /// <summary>Small text-only button for window chrome (‒ / ✕).</summary>
         private Button CreateChromeButton(string text, string tooltip)
         {
             var blueBrush = new SolidColorBrush(Color.FromRgb(0x58, 0xA6, 0xFF));
@@ -265,6 +265,15 @@ namespace KeyboardCleaner
                 VerticalContentAlignment = VerticalAlignment.Center,
                 HorizontalContentAlignment = HorizontalAlignment.Center,
             };
+
+            // Custom template — no hover background, just a plain ContentPresenter
+            var tpl = new ControlTemplate(typeof(Button));
+            var content = new FrameworkElementFactory(typeof(ContentPresenter));
+            content.SetValue(ContentPresenter.VerticalAlignmentProperty, VerticalAlignment.Center);
+            content.SetValue(ContentPresenter.HorizontalAlignmentProperty, HorizontalAlignment.Center);
+            tpl.VisualTree = content;
+            btn.Template = tpl;
+
             btn.MouseEnter += (s, e) => btn.Foreground = blueBrush;
             btn.MouseLeave += (s, e) => btn.Foreground = BrushTextSec;
             return btn;
