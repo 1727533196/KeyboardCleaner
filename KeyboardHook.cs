@@ -23,17 +23,24 @@ namespace KeyboardCleaner
             if (IsInstalled) return;
 
             _proc = HookCallback;
-            using (var mod = System.Diagnostics.Process.GetCurrentProcess().MainModule)
-            {
-                _hookId = NativeMethods.SetWindowsHookEx(
-                    NativeMethods.WH_KEYBOARD_LL,
-                    _proc,
-                    NativeMethods.GetModuleHandle(mod.ModuleName),
-                    0);
-            }
+
+            // GetModuleHandle(null) returns this EXE's module handle —
+            // the simplest and most reliable way for WH_KEYBOARD_LL.
+            IntPtr hMod = NativeMethods.GetModuleHandle(null);
+
+            _hookId = NativeMethods.SetWindowsHookEx(
+                NativeMethods.WH_KEYBOARD_LL,
+                _proc,
+                hMod,
+                0);
 
             if (_hookId == IntPtr.Zero)
-                throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+            {
+                int err = Marshal.GetLastWin32Error();
+                throw new System.ComponentModel.Win32Exception(err,
+                    "无法安装键盘钩子。错误码: " + err +
+                    "\n请尝试以管理员身份运行此程序。");
+            }
         }
 
         /// <summary>Remove the global keyboard hook.</summary>

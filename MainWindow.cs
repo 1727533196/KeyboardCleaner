@@ -49,7 +49,7 @@ namespace KeyboardCleaner
             BuildUI();
             SetupTrayIcon();
 
-            // Default state: unlocked
+            // Default state: unlocked — user clicks button to lock
             UpdateUIState();
         }
 
@@ -288,11 +288,11 @@ namespace KeyboardCleaner
             var menu = new System.Windows.Forms.ContextMenuStrip();
 
             var lockItem = new System.Windows.Forms.ToolStripMenuItem("🔒 锁定键盘");
-            lockItem.Click += (s, e) => { if (!_isLocked) ToggleLock(); };
+            lockItem.Click += (s, e) => DoLock();
             menu.Items.Add(lockItem);
 
             var unlockItem = new System.Windows.Forms.ToolStripMenuItem("🔓 解锁键盘");
-            unlockItem.Click += (s, e) => { if (_isLocked) ToggleLock(); };
+            unlockItem.Click += (s, e) => DoUnlock();
             menu.Items.Add(unlockItem);
 
             menu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
@@ -313,31 +313,31 @@ namespace KeyboardCleaner
         // ── Lock toggle ────────────────────────────────────────────
         private void OnToggleClick(object sender, RoutedEventArgs e)
         {
-            ToggleLock();
+            if (_isLocked) DoUnlock();
+            else DoLock();
         }
 
-        private void ToggleLock()
+        private void DoLock()
         {
-            _isLocked = !_isLocked;
-
-            if (_isLocked)
+            if (_isLocked) return;
+            try { _hook.Install(); }
+            catch (Exception ex)
             {
-                try { _hook.Install(); }
-                catch (Exception ex)
-                {
-                    System.Windows.Forms.MessageBox.Show(
-                        "无法安装键盘钩子：\n" + ex.Message + "\n\n请尝试以管理员身份运行。",
-                        "错误", System.Windows.Forms.MessageBoxButtons.OK,
-                        System.Windows.Forms.MessageBoxIcon.Error);
-                    _isLocked = false;
-                    return;
-                }
+                System.Windows.Forms.MessageBox.Show(
+                    "无法安装键盘钩子：\n" + ex.Message + "\n\n请尝试以管理员身份运行此程序。",
+                    "错误", System.Windows.Forms.MessageBoxButtons.OK,
+                    System.Windows.Forms.MessageBoxIcon.Error);
+                return;
             }
-            else
-            {
-                _hook.Uninstall();
-            }
+            _isLocked = true;
+            UpdateUIState();
+        }
 
+        private void DoUnlock()
+        {
+            if (!_isLocked) return;
+            _hook.Uninstall();
+            _isLocked = false;
             UpdateUIState();
         }
 
@@ -345,11 +345,7 @@ namespace KeyboardCleaner
         {
             if (_isLocked)
             {
-                _isLocked = false;
-                _hook.Uninstall();
-                UpdateUIState();
-
-                // Brief flash to show it worked
+                DoUnlock();
                 FlashWindow();
             }
         }
