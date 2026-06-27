@@ -282,9 +282,13 @@ namespace KeyboardCleaner
         // ── System tray ────────────────────────────────────────────
         private void SetupTrayIcon()
         {
+            // Extract icon from the EXE itself (embedded via /win32icon)
+            var exeIcon = System.Drawing.Icon.ExtractAssociatedIcon(
+                System.Reflection.Assembly.GetEntryAssembly().Location);
+
             _trayIcon = new System.Windows.Forms.NotifyIcon
             {
-                Icon = System.Drawing.SystemIcons.Shield,
+                Icon = exeIcon,
                 Text = "键盘清洁助手 - 已解锁",
                 Visible = true,
             };
