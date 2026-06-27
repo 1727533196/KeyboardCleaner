@@ -108,13 +108,33 @@ namespace KeyboardCleaner
             };
 
             var rootGrid = new Grid();
-            rootGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // row 0
-            rootGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });                        // row 1
-            rootGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });                        // row 2
-            rootGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });                        // row 3
+            rootGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });                        // row 0: title bar
+            rootGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // row 1: status
+            rootGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });                        // row 2: button
+            rootGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });                        // row 3: hint
             rootGrid.Margin = new Thickness(0);
 
-            // ── Row 0: Status area ─────────────────────────────────
+            // ── Row 0: Title bar (buttons top-right) ─────────────────
+            var titleBar = new DockPanel { Height = 30 };
+
+            var chromeBtns = new StackPanel { Orientation = Orientation.Horizontal };
+            DockPanel.SetDock(chromeBtns, Dock.Right);
+
+            var minBtn = CreateChromeButton("‒", "最小化到托盘");
+            minBtn.Width = 32; minBtn.Height = 30;
+            minBtn.Click += (s, e) => HideToTray();
+            chromeBtns.Children.Add(minBtn);
+
+            var clsBtn = CreateChromeButton("✕", "退出程序");
+            clsBtn.Width = 32; clsBtn.Height = 30;
+            clsBtn.Click += (s, e) => ExitApplication();
+            chromeBtns.Children.Add(clsBtn);
+
+            titleBar.Children.Add(chromeBtns);
+            Grid.SetRow(titleBar, 0);
+            rootGrid.Children.Add(titleBar);
+
+            // ── Row 1: Status area ─────────────────────────────────
             var statusPanel = new StackPanel
             {
                 VerticalAlignment = VerticalAlignment.Center,
@@ -163,7 +183,7 @@ namespace KeyboardCleaner
             };
             statusPanel.Children.Add(_statusSubtitle);
 
-            Grid.SetRow(statusPanel, 0);
+            Grid.SetRow(statusPanel, 1);
             rootGrid.Children.Add(statusPanel);
 
             // ── Row 1: Toggle button ───────────────────────────────
@@ -205,7 +225,7 @@ namespace KeyboardCleaner
                 _toggleButton.Background = _isLocked ? BrushBtnLocked : BrushBtnUnlock;
             };
 
-            Grid.SetRow(_toggleButton, 1);
+            Grid.SetRow(_toggleButton, 2);
             rootGrid.Children.Add(_toggleButton);
 
             // ── Row 2: Hint ────────────────────────────────────────
@@ -218,57 +238,32 @@ namespace KeyboardCleaner
                 HorizontalAlignment = HorizontalAlignment.Center,
                 Margin = new Thickness(0, 10, 0, 0),
             };
-            Grid.SetRow(_hintText, 2);
+            Grid.SetRow(_hintText, 3);
             rootGrid.Children.Add(_hintText);
-
-            // ── Row 3: Spacer + close button ──────────────────────
-            var bottomPanel = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                Margin = new Thickness(0, 4, 0, 12),
-            };
-
-            var minimizeBtn = CreateChromeButton("─", "最小化到托盘");
-            minimizeBtn.Click += (s, e) => HideToTray();
-            bottomPanel.Children.Add(minimizeBtn);
-
-            var closeText = new TextBlock
-            {
-                Text = "  ·  ",
-                Foreground = BrushBorder,
-                FontSize = 11,
-                VerticalAlignment = VerticalAlignment.Center,
-            };
-            bottomPanel.Children.Add(closeText);
-
-            var exitBtn = CreateChromeButton("✕", "退出程序");
-            exitBtn.Click += (s, e) => ExitApplication();
-            bottomPanel.Children.Add(exitBtn);
-
-            Grid.SetRow(bottomPanel, 3);
-            rootGrid.Children.Add(bottomPanel);
 
             rootBorder.Child = rootGrid;
             Content = rootBorder;
         }
 
-        /// <summary>Small text-only button for window chrome actions.</summary>
+        /// <summary>Small text-only button for window chrome (─ / ✕).</summary>
         private Button CreateChromeButton(string text, string tooltip)
         {
+            var blueBrush = new SolidColorBrush(Color.FromRgb(0x58, 0xA6, 0xFF));
             var btn = new Button
             {
                 Content = text,
                 ToolTip = tooltip,
-                FontSize = 12,
+                FontSize = 13,
                 FontFamily = new FontFamily("Segoe UI"),
                 Foreground = BrushTextSec,
                 Background = Brushes.Transparent,
                 BorderThickness = new Thickness(0),
                 Cursor = System.Windows.Input.Cursors.Hand,
-                Padding = new Thickness(6, 2, 6, 2),
+                Padding = new Thickness(0),
+                VerticalContentAlignment = VerticalAlignment.Center,
+                HorizontalContentAlignment = HorizontalAlignment.Center,
             };
-            btn.MouseEnter += (s, e) => btn.Foreground = BrushTextPri;
+            btn.MouseEnter += (s, e) => btn.Foreground = blueBrush;
             btn.MouseLeave += (s, e) => btn.Foreground = BrushTextSec;
             return btn;
         }
